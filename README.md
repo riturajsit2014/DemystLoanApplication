@@ -4,7 +4,7 @@
 2. Run the following command:
     * To run via docker:
         - docker build -t backend .
-        - docker run --rm -it -p 3000:3000 backend -d
+        - docker run --rm -it -d -p 3000:3000 backend
     * To run without docker:
         - cd accounting-software
         - npm install
