@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="header" content="width=device-width, initial-scale=1">
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <style>
+        button {
+            /*not in use*/
+            background-color: #006098;
+            /* Green */
+            border: none;
+            color: white;
+            padding: 15px 25px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .button-3 {
+            appearance: none;
+            background-color: #006098;
+            border: 1px solid rgba(27, 31, 35, .15);
+            border-radius: 6px;
+            box-shadow: rgba(27, 31, 35, .1) 0 1px 0;
+            box-sizing: border-box;
+            color: #fff;
+            cursor: pointer;
+            display: inline-block;
+            font-family: -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 20px;
+            padding: 6px 16px;
+            position: relative;
+            text-align: center;
+            text-decoration: none;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        .button-3:focus:not(:focus-visible):not(.focus-visible) {
+            box-shadow: none;
+            outline: none;
+        }
+
+        .button-3:hover {
+            background-color: #baa700;
+        }
+
+        .button-3:focus {
+            box-shadow: rgba(46, 164, 79, .4) 0 0 0 3px;
+            outline: none;
+        }
+
+        .button-3:disabled {
+            background-color: #87c6e8;
+            border-color: rgba(27, 31, 35, .1);
+            color: rgba(255, 255, 255, .8);
+            cursor: default;
+        }
+
+        .button-3:active {
+            background-color: #baa700;
+            box-shadow: rgba(20, 70, 32, .2) 0 1px 0 inset;
+        }
+
+        .styled-table {
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 0.9em;
+            font-family: sans-serif;
+            min-width: 400px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .styled-table thead tr {
+            background-color: #006098;
+            color: #ffffff;
+            text-align: left;
+        }
+
+        .styled-table th,
+        .styled-table td {
+            padding: 5px 0px;
+        }
+
+        .styled-table tbody tr {
+            border-bottom: 1px solid #dddddd;
+        }
+
+        .styled-table tbody tr:nth-of-type(even) {
+            background-color: #f3f3f3;
+        }
+
+        .styled-table tbody tr:last-of-type {
+            border-bottom: 2px solid #006098;
+        }
+
+        .styled-table tbody tr.active-row {
+            font-weight: bold;
+            color: #009879;
+        }
+
+        .row {
+            display: flex;
+        }
+
+        .column {
+            flex: 100%;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        form {
+            box-sizing: border-box;
+            padding: 2rem;
+            border-radius: 1rem;
+            background-color: hsl(0, 0%, 100%);
+            border: 4px solid hsl(0, 0%, 90%);
+            display: grid;
+            grid-template-columns: 30% 30%;
+            gap: 2rem;
+            margin-left: 20%;
+            margin-right: 20%;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+    </style>
+
+    <title>Loan Application</title>
+    <script>
+        window.onload = function() {
+            document.getElementById("balanceSheetDiv").style.display = 'none';
+            document.getElementById("decisionDiv").style.display = 'none';
+            document.getElementById("submitApplication").disabled = true;
+        };
+        function getBalanceSheet() {
+            let name = document.getElementById("name").value.toString();
+            let address = document.getElementById("address").value.toString();
+            let loanAmount = document.getElementById("loanAmount").value;
+            let loanType = document.getElementById("loanType").value.toString();
+            let yearOfEstablishment = document.getElementById("yearOfEstablishment").value.toString();
+            const body = {
+                name: name,
+                address: address,
+                loanAmount: loanAmount,
+                loanType: loanType,
+                yearOfEstablishment: yearOfEstablishment
+            };
+            // Make POST request to fetch-balance-sheet API
+            fetch('/loan/fetch-balance-sheet', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body),
+            })
+                .then(response => response.json())
+                .then(resultData => {
+                    // Populate form with loanRequestDetails data
+                    document.getElementById("name").value = resultData.data.loanRequestDetails.name;
+                    document.getElementById("address").value = resultData.data.loanRequestDetails.address;
+                    document.getElementById("loanAmount").value = resultData.data.loanRequestDetails.loanAmount;
+                    document.getElementById("loanType").value = resultData.data.loanRequestDetails.loanType;
+                    document.getElementById("yearOfEstablishment").value = resultData.data.loanRequestDetails.yearOfEstablishment;
+                    // Add balanceSheet data to table
+                    let table = document.getElementById("balanceSheetTable");
+                    resultData.data.balanceSheet.forEach(function (item) {
+                        let row = table.insertRow();
+                        let year = row.insertCell(0);
+                        let month = row.insertCell(1);
+                        let profitOrLoss = row.insertCell(2);
+                        let assetValue = row.insertCell(3);
+                        year.innerHTML = item.year;
+                        month.innerHTML = item.month;
+                        profitOrLoss.innerHTML = item.profitOrLoss;
+                        assetValue.innerHTML = item.assetsValue;
+                    });
+                    document.getElementById("balanceSheetDiv").style.display = 'inline';
+                    document.getElementById("submitApplication").disabled = false;
+                })
+                .catch(error => {
+                    // Handle any errors
+                    console.error(error);
+                });
+        };
+
+        function submitApplication() {
+            let name = document.getElementById("name").value.toString();
+            let address = document.getElementById("address").value.toString();
+            let loanAmount = document.getElementById("loanAmount").value;
+            let loanType = document.getElementById("loanType").value.toString();
+            let yearOfEstablishment = document.getElementById("yearOfEstablishment").value.toString();
+
+            // Make POST request to submit-application API
+            fetch('/loan/application/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: name,
+                    address: address,
+                    loanAmount: loanAmount,
+                    loanType: loanType,
+                    yearOfEstablishment: yearOfEstablishment
+                })
+            })
+                .then(response => response.json())
+                .then(resultData => {
+                    // Populate form with loanRequestDetails data
+                    document.getElementById("name").value = resultData.data.loanRequestDetails.name;
+                    document.getElementById("address").value = resultData.data.loanRequestDetails.address;
+                    document.getElementById("loanAmount").value = resultData.data.loanRequestDetails.loanAmount;
+                    document.getElementById("loanType").value = resultData.data.loanRequestDetails.loanType;
+                    document.getElementById("yearOfEstablishment").value = resultData.data.loanRequestDetails.yearOfEstablishment;
+                    // Add decision result to decision table
+                    let table = document.getElementById("decisionTable");
+                    let row = table.insertRow();
+                    let decision = row.insertCell(0);
+                    decision.innerHTML = resultData.data.decisionEngineResponse.decision;
+                    document.getElementById("decisionDiv").style.display = 'inline';
+                })
+                .catch(error => {
+
+                    // Handle any errors
+                    console.error(error);
+                });
+        };
+    </script>
+</head>
+
+<body class="MsoNormal" align="center" style="margin-bottom:.5pt; text-align:center">
+    <p>
+    <h2>Loan Application</h2>
+    <form id="loanForm">
+        Name: <input type="text" id="name" name="name" placeholder="Company Name..." required /><br />
+        Address: <input type="text" id="address" name="address" placeholder="Company address..." required /><br />
+        Loan Amount: <input type="number" id="loanAmount" name="loanAmount" placeholder="Loan Amount..."
+            required /><br />
+        Loan Type: <input type="text" id="loanType" name="loanType" placeholder="loanType..." required /><br />
+        Year Of Establishment: <input type="number" id="yearOfEstablishment" name="yearOfEstablishment"
+            placeholder="Year of Establishment..." required min="1950" max="2023" /><br />
+        <button class="button-3" type="button" id="balanceSheet" onclick="getBalanceSheet()">
+            Get Balance Sheet
+        </button>
+    </form>
+    <div id="balanceSheetDiv">
+        <h2>Balance Sheet</h2>
+        <table id="balanceSheetTable" border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse; margin: 0px auto;" width="40%" class="styled-table">
+            <tr>
+                <th>Year</th>
+                <th>Month</th>
+                <th>Profit/Loss</th>
+                <th>Asset Value</th>
+            </tr>
+        </table>
+        <br/>
+        <button class="button-3" type="button" id="submitApplication" onclick="submitApplication()">
+            Submit Application
+        </button>
+    </div>
+    <div id="decisionDiv" align="center">
+        <h2>Decision Engine Response</h2>
+        <table id="decisionTable">
+            <tr>
+                <th>Decision</th>
+            </tr>
+        </table>
+    </div> 
+    
+    </p>
+</body>
+
+</html>
